@@ -1,38 +1,43 @@
 import sys
+import os
 import random
 from PyQt5.QtWidgets import QApplication, QLabel, QMenu, QAction
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt, QTimer, QPoint
 
+# 辅助函数：确保打包成 .exe 后能找到解压在临时文件夹里的图片
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
 class HeartPaperPet(QLabel):
     def __init__(self):
         super().__init__()
 
-        # 1. 资源配置文件名映射
+        # 名字必须与 GitHub 仓库里的 .png 图片文件名完全一致
         self.images = {
-            "normal": "刘辩-心纸君-正常.png",
-            "happy": "刘辩-心纸君-开心.png",
-            "sad": "刘辩-心纸君-哭哭.png",
-            "angry": "刘辩-心纸君-生气.png",
-            "surprised": "刘辩-心纸君-惊讶.png",
-            "scared": "刘辩-心纸君-惶恐.png",
-            "sweat": "刘辩-心纸君-流汗.png",
-            "shake": "刘辩-心纸君-摇铃.jpg"
+            "normal": resource_path("刘辩-心纸君-正常.png"),
+            "happy": resource_path("刘辩-心纸君-开心.png"),
+            "sad": resource_path("刘辩-心纸君-哭哭.png"),
+            "angry": resource_path("刘辩-心纸君-生气.png"),
+            "surprised": resource_path("刘辩-心纸君-惊讶.png"),
+            "scared": resource_path("刘辩-心纸君-惶恐.png"),
+            "sweat": resource_path("刘辩-心纸君-流汗.png"),
+            "shake": resource_path("刘辩-心纸君-摇铃.png"),
+            "doubt": resource_path("刘辩-心纸君-疑惑.png")
         }
 
-        # 2. 窗口无边框、置顶、背景透明
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
         self.setAttribute(Qt.WA_TranslucentBackground)
 
-        # 3. 初始化显示图片
         self.current_state = "normal"
         self.update_image(self.images[self.current_state])
 
-        # 4. 拖拽相关变量
         self.is_dragging = False
         self.drag_position = QPoint()
 
-        # 5. 定时器：随机切换表情（每 10 秒随机触发一次状态变化）
+        # 每 10 秒自动随机换表情
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.random_change_emotion)
         self.timer.start(10000)
@@ -40,21 +45,17 @@ class HeartPaperPet(QLabel):
         self.show()
 
     def update_image(self, img_path):
-        """更新桌宠显示的图片"""
         pixmap = QPixmap(img_path)
         if not pixmap.isNull():
-            # 缩放到合适大小（如高 200px，保持比例）
-            scaled_pixmap = pixmap.scaledToHeight(200, Qt.SmoothTransformation)
+            scaled_pixmap = pixmap.scaledToHeight(220, Qt.SmoothTransformation)
             self.setPixmap(scaled_pixmap)
             self.resize(scaled_pixmap.size())
 
     def random_change_emotion(self):
-        """随机切换心纸君的表情"""
         emotions = list(self.images.keys())
         self.current_state = random.choice(emotions)
         self.update_image(self.images[self.current_state])
 
-    # === 鼠标事件：拖拽与点击交互 ===
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.is_dragging = True
@@ -69,16 +70,13 @@ class HeartPaperPet(QLabel):
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.is_dragging = False
-            # 左键点击时切换到“开心”或“摇铃”
-            click_emotions = ["happy", "shake", "surprised"]
+            click_emotions = ["happy", "shake", "surprised", "doubt"]
             self.current_state = random.choice(click_emotions)
             self.update_image(self.images[self.current_state])
 
-    # === 右键菜单 ===
     def contextMenuEvent(self, event):
         menu = QMenu(self)
         
-        # 表情手动切换子菜单
         emotion_menu = menu.addMenu("切换表情")
         for key in self.images.keys():
             action = QAction(key.capitalize(), self)
@@ -87,7 +85,6 @@ class HeartPaperPet(QLabel):
 
         menu.addSeparator()
         
-        # 退出选项
         quit_action = QAction("送心纸君回宫 (退出)", self)
         quit_action.triggered.connect(QApplication.instance().quit)
         menu.addAction(quit_action)
