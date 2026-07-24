@@ -23,12 +23,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install PyQt5 pyinstaller
 
-    # 修复编码和路径打包逻辑：加了 --collect-all PyQt5 并显式用 powershell 执行
     - name: Build EXE with PyInstaller
       shell: powershell
       run: |
         $env:PYTHONUTF8=1
-        pyinstaller --noconsole --onefile --add-data "*.png;." --add-data "*.jpg;." --name "LiuBianPet" main.py
+        pyinstaller --noconsole --onefile --add-data "*.png;." --name "LiuBianPet" main.py
 
     - name: Upload Executable
       uses: actions/upload-artifact@v4
