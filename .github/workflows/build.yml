@@ -1,0 +1,40 @@
+name: 打包刘辩心纸君桌宠
+
+# 触发条件：当你向 main 或 master 分支推送代码时，或者在 Actions 页面手动点击触发
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest  # 使用 GitHub 提供的免费 Windows 云端虚拟机
+
+    steps:
+    # 1. 拉取仓库中的代码和图片
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. 配置 Python 环境
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    # 3. 安装所需的依赖包 (PyQt5 与 PyInstaller)
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install PyQt5 pyinstaller
+
+    # 4. 执行 PyInstaller 打包命令
+    - name: Build EXE with PyInstaller
+      run: |
+        pyinstaller --noconsole --onefile --add-data "*.png;." --add-data "*.jpg;." --name "刘辩心纸君桌宠" main.py
+
+    # 5. 将生成的 exe 上传为产物 (Artifact)，方便在网页下载
+    - name: Upload Executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: 刘辩心纸君桌宠-Windows版
+        path: dist/刘辩心纸君桌宠.exe
